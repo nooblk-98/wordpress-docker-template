@@ -7,7 +7,7 @@
 
 [![CI/CD](https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml)
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%20|%208.1%20|%208.2%20|%208.3%20|%208.4-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![Wordpress](https://img.shields.io/badge/wordpress-latest|%203.18%20|%203.20%20|%20edge-0D597F?logo=alpine-linux&logoColor=white)](https://alpinelinux.org/)
+[![Wordpress](https://img.shields.io/badge/wordpress-latest%logo=alpine-linux&logoColor=white)](https://alpinelinux.org/)
 [![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?logo=nginx&logoColor=white)](https://nginx.org/)
 [![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: AGPL](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
