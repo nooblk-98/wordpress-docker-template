@@ -1,0 +1,7 @@
+.git
+.github
+docker-compose.yml
+README.md
+LICENSE
+*.zip
+php-nginx-docker-template-tmp

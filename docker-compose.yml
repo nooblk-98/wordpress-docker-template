@@ -1,0 +1,40 @@
+services:
+  wordpress:
+    build:
+      context: .
+      args:
+        PHP_TAG: 8.4
+        PHP_VERSION: 84
+    image: wordpress-nginx:8.4
+    ports:
+      - "8080:8080"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_AUTO_INSTALL: "true"
+      WORDPRESS_SITE_URL: http://localhost:8080
+      WORDPRESS_SITE_TITLE: "WordPress on Nginx"
+      WORDPRESS_ADMIN_USER: admin
+      WORDPRESS_ADMIN_PASSWORD: admin
+      WORDPRESS_ADMIN_EMAIL: admin@example.com
+    # volumes:
+    #   - wp_data:/var/www/html/wp-content
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: rootpassword
+    # volumes:
+    #   - db_data:/var/lib/mysql
+
+volumes:
+  db_data:
+  wp_data:
