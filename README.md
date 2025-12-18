@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./images/logo.svg" width="360" alt="php-nginx-docker logo" />
 
-# WordPress + Nginx + PHP-FPM
+# WordPress + Nginx + PHP-FPM Docker Template
 
 **Battle-tested WordPress images layered on top of the secured php-nginx stack.**
 
