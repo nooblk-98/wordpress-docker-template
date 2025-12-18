@@ -1,377 +1,196 @@
 <div align="center">
-  <img src="./images/logo.svg" width="360" alt="php-nginx-docker logo" />
 
-# PHP-Nginx Docker Template
+# WordPress + Nginx + PHP-FPM
 
-**Production-ready PHP-FPM + Nginx container stack for modern web applications**
+**Battle-tested WordPress images on top of the secured `lahiru98s/php-nginx` base. WP core and WP-CLI are baked in with opinionated PHP/Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.**
 
-[![CI/CD](https://github.com/nooblk-98/php-nginx-docker-template/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/nooblk-98/php-nginx-docker-template/actions/workflows/build-and-push.yml)
-[![PHP Version](https://img.shields.io/badge/PHP-7.4%20|%208.1%20|%208.2%20|%208.3%20|%208.4-777BB4?logo=php&logoColor=white)](https://www.php.net/)
-[![Alpine Linux](https://img.shields.io/badge/Alpine-3.15%20|%203.18%20|%203.20%20|%20edge-0D597F?logo=alpine-linux&logoColor=white)](https://alpinelinux.org/)
-[![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?logo=nginx&logoColor=white)](https://nginx.org/)
-[![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License: AGPL](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
-[![Last Commit](https://img.shields.io/github/last-commit/nooblk-98/php-nginx-docker-template)](https://github.com/nooblk-98/php-nginx-docker-template/commits/main)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/nooblk-98/php-nginx-docker-template/blob/main/CONTRIBUTING.md)
+<div align="center">
+  <p>
+    <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/PHP-7.4%20|%208.1%20|%208.2%20|%208.3%20|%208.4-777BB4?logo=php&logoColor=white" alt="PHP versions" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white" alt="WordPress latest" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="License" /></a>
+    <a href="https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml"><img src="https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml/badge.svg" alt="CI/CD" /></a>
+  </p>
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
-
+  <p><a href="#overview">Overview</a> | <a href="#features">Features</a> | <a href="#quick-start">Quick Start</a> | <a href="#available-tags">Available Tags</a> | <a href="#configuration">Configuration</a> | <a href="#troubleshooting">Troubleshooting</a></p>
 </div>
 
 ---
 
-## 📖 Overview
+## Overview
 
-A battle-tested, production-grade Docker template combining **Nginx** and **PHP-FPM** on Alpine Linux. Engineered for security, performance, and developer productivity with zero-configuration deployment and enterprise-grade defaults.
-
-### What's Included
-
-- **Alpine Linux** - Minimal footprint (~50MB base image)
-- **PHP-FPM** - Optimized with opcache, APCu, and performance tuning
-- **Nginx** - Hardened configuration with security headers
-- **Supervisor** - Process management with auto-restart
-- **Tini** - Proper init system for graceful shutdowns
-- **Health Checks** - Built-in endpoints for monitoring
+- WordPress core downloaded at build time (override with `WORDPRESS_VERSION`).
+- WP-CLI installed globally; used to create `wp-config.php` with sane defaults and shuffled salts.
+- Hardened Nginx + PHP-FPM from `lahiru98s/php-nginx`, running as non-root `app`.
+- Supervisor manages Nginx/PHP-FPM with proper init (tini) and Docker healthcheck wired to `/fpm-ping`.
 
 ---
-
 
 ## Features
 
-### Security & Production Hardening
+### Security & hardening
+- Non-root runtime, minimal Alpine base inherited from the php-nginx image.
+- Locked-down Nginx headers; socket-based PHP-FPM for faster, safer IPC.
+- Secrets stay out of the image: config generated at runtime, salts shuffled once.
 
-- **Non-root runtime** - Container runs as unprivileged `app` user, reducing attack surface
-- **Locked-down defaults** - Nginx hides server details, security headers applied
-- **Minimal Alpine base** - Smaller attack surface, fewer vulnerabilities to patch
-- **Security headers** - X-Frame-Options, X-Content-Type-Options, X-XSS-Protection enabled
+### WordPress experience
+- `wp-config.php` auto-created if missing; respects DB/env overrides and common toggles (debug, cache, cron, SSL admin, environment type).
+- Optional auto-install via `WORDPRESS_AUTO_INSTALL=true` once the DB is reachable.
+- PHP overrides for uploads, memory/time limits, and input vars via [php/php.ini](php/php.ini).
 
-### Performance Optimization
+### Operations & observability
+- Health endpoints (`/fpm-ping`, `/fpm-status`) plus Docker healthcheck.
+- Structured logs from Nginx and PHP-FPM; Supervisor keeps both services up.
+- Compose example with MariaDB and persistent `wp-content`.
 
-- **Tuned opcache** - Pre-configured for speed with sensible caching defaults
-- **Unix socket communication** - PHP-FPM and Nginx communicate via socket (faster than TCP)
-- **Gzip compression** - Built-in compression for faster response times
-- **Browser caching** - Optimized cache headers for static assets
-- **Fast startup** - Lightweight Alpine base means quick container spin-up (<3s)
-
-### Flexibility & Compatibility
-
-- **Multiple PHP versions** - Pre-built images for PHP 7.4, 8.1, 8.2, 8.3, 8.4
-- **Easy customization** - Override PHP settings via environment variables or `.env` file
-- **Version-locked Alpine** - Each PHP version paired with compatible Alpine release
-- **Common extensions included** - mysqli, pdo_mysql, gd, curl, zip, mbstring, opcache, and more
-
-### Developer Experience
-
-- **Zero configuration** - Just run `docker compose up` and start coding
-- **Health endpoints** - Built-in `/fpm-ping` and `/fpm-status` for monitoring
-- **Sample dashboard** - Included PHP info page to verify configuration
-- **CI/CD ready** - GitHub Actions workflow included for automated builds
-- **Hot reload** - Mount your code and see changes instantly
-
-### Operational Reliability
-
-- **Graceful shutdowns** - Tini init system handles signals properly
-- **Supervised processes** - Supervisor manages nginx + php-fpm, auto-restarts on failure
-- **Health checks** - Docker health checks ensure container is responding
-- **Detailed logging** - Structured logs for debugging and monitoring
-- **Clear documentation** - Comprehensive troubleshooting guide included
+### Flexibility
+- Mirrors base layout: versioned Dockerfiles in `wp74`, `wp81`, `wp82`, `wp83`, `wp84`.
+- Build args to pin PHP tag (`PHP_TAG`), PHP package suffix (`PHP_VERSION` dotless), and `WORDPRESS_VERSION`.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### Option 1: Docker Compose (Recommended)
+### Option 1: Docker Compose (recommended)
 
 ```bash
-# Clone the repository
-git clone https://github.com/nooblk-98/php-nginx-docker-template.git
-cd php-nginx-docker-template
+git clone https://github.com/nooblk-98/wordpress-docker-template.git
+cd wordpress-docker-template
 
-# Start the container
 docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Visit your application
 open http://localhost:8080
 ```
 
-### Option 2: Docker Run
+Defaults: builds PHP 8.4 image, starts MariaDB 11, auto-installs WordPress with starter admin creds. Persist data by enabling the volumes in `docker-compose.yml`.
+
+### Option 2: Run with an external database
 
 ```bash
 docker run -d \
-  --name php-nginx \
+  --name wordpress-nginx \
   -p 8080:8080 \
-  -v $(pwd)/src:/var/www/html \
-  lahiru98s/php-nginx-docker-template:8.3
+  -e WORDPRESS_DB_HOST=your-db:3306 \
+  -e WORDPRESS_DB_USER=wordpress \
+  -e WORDPRESS_DB_PASSWORD=wordpress \
+  lahiru98s/wordpress-nginx:8.4
 ```
 
-### Option 3: Pull from Registry
+### Option 3: Pull image directly
 
 ```bash
-# Docker Hub
-docker pull lahiru98s/php-nginx-docker-template:8.3
-
-# GitHub Container Registry
-docker pull ghcr.io/nooblk-98/php-nginx-docker-template:8.3
+docker pull lahiru98s/wordpress-nginx:8.4
 ```
 
 ---
 
-## 📦 Available PHP Versions
+## Available Tags
 
-| PHP Version | Alpine Version | Image Tag | Status |
-|-------------|----------------|-----------|--------|
-| 8.4 | edge | `8.4`, `latest` | ✅ Stable |
-| 8.3 | 3.20 | `8.3` | ✅ Stable |
-| 8.2 | 3.20 | `8.2` | ✅ Stable |
-| 8.1 | 3.18 | `8.1` | ✅ Stable |
-| 7.4 | 3.15 | `7.4` | ⚠️ Legacy |
+| PHP version | Image tag | Dockerfile | Status |
+| ----------- | --------- | ---------- | ------ |
+| 8.4 | `8.4`, `latest` | [wp84/Dockerfile](wp84/Dockerfile) | Stable |
+| 8.3 | `8.3` | [wp83/Dockerfile](wp83/Dockerfile) | Stable |
+| 8.2 | `8.2` | [wp82/Dockerfile](wp82/Dockerfile) | Stable |
+| 8.1 | `8.1` | [wp81/Dockerfile](wp81/Dockerfile) | Stable |
+| 7.4 | `7.4` | [wp74/Dockerfile](wp74/Dockerfile) | Legacy |
 
-**Dockerfile locations:**
-- PHP 7.4: [php74/Dockerfile](php74/Dockerfile)
-- PHP 8.1: [php81/Dockerfile](php81/Dockerfile)
-- PHP 8.2: [php82/Dockerfile](php82/Dockerfile)
-- PHP 8.3: [php83/Dockerfile](php83/Dockerfile)
-- PHP 8.4: [php84/Dockerfile](php84/Dockerfile)
+Default build args: `PHP_TAG=8.4`, `PHP_VERSION=84`, `WORDPRESS_VERSION=latest`.
 
 ---
 
-## 🛠️ Building from Source
+## Building from Source
 
-### Basic Build
+### Generic build (default PHP 8.4)
 
 ```bash
-# Default: PHP 8.3 on Alpine 3.20
-docker build -t php-nginx:8.3 .
+docker build -t lahiru98s/wordpress-nginx:8.4 .
 ```
 
-### Custom Build with Arguments
+### Pin PHP/WordPress versions
 
 ```bash
-# Build PHP 8.2 on Alpine 3.19
 docker build \
-  -t php-nginx:8.2 \
-  --build-arg PHP_VERSION=82 \
-  --build-arg ALPINE_VERSION=3.19 \
+  -t lahiru98s/wordpress-nginx:8.3 \
+  --build-arg PHP_TAG=8.3 \
+  --build-arg PHP_VERSION=83 \
+  --build-arg WORDPRESS_VERSION=6.7.1 \
   .
 ```
 
-### Build Specific Version
+### Build from a versioned Dockerfile
 
 ```bash
-# Build from version-specific Dockerfile
-docker build -t php-nginx:8.4 -f php84/Dockerfile .
+docker build -t lahiru98s/wordpress-nginx:8.1 -f wp81/Dockerfile .
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-### Custom PHP Settings
+Entrypoint environment variables (all optional):
 
-The docker-compose.yml mounts `configs.php_overrides` into `/etc/php${PHP_VERSION}/conf.d/99-overrides.ini`.
+- `WORDPRESS_DB_HOST` (default `db:3306`)
+- `WORDPRESS_DB_NAME` (default `wordpress`)
+- `WORDPRESS_DB_USER` / `WORDPRESS_DB_PASSWORD` (default `wordpress` / `wordpress`)
+- `WORDPRESS_TABLE_PREFIX` (default `wp_`)
+- `WORDPRESS_DEBUG`, `WORDPRESS_CACHE`, `WORDPRESS_FORCE_SSL_ADMIN`, `WORDPRESS_DISABLE_CRON`, `WORDPRESS_ENVIRONMENT_TYPE` (defaults: `false`, `false`, `false`, `false`, `production`)
+- `WORDPRESS_AUTO_INSTALL` (`true` triggers `wp core install` once DB is reachable)
+- `WORDPRESS_SITE_URL`, `WORDPRESS_SITE_TITLE`, `WORDPRESS_ADMIN_USER`, `WORDPRESS_ADMIN_PASSWORD`, `WORDPRESS_ADMIN_EMAIL` (used when auto-install is enabled)
+- `WORDPRESS_PATH` (default `/var/www/html`)
+
+Volume examples:
 
 ```yaml
 services:
-  app:
-    environment:
-      - MEMORY_LIMIT=512M
-      - MAX_EXECUTION_TIME=120
+  wordpress:
+    volumes:
+      - ./wp-data:/var/www/html/wp-content
+  db:
+    volumes:
+      - ./db-data:/var/lib/mysql
 ```
 
-### Volume Mounts
+Key configuration files:
 
-```yaml
-volumes:
-  - ./src:/var/www/html              # Your application code
-  - ./nginx/nginx.conf:/etc/nginx/nginx.conf           # Custom nginx config
-  - ./php/php.ini:/etc/php83/php.ini                   # Custom PHP config
-```
+- [nginx/nginx.conf](nginx/nginx.conf) and [nginx/conf.d/default.conf](nginx/conf.d/default.conf)
+- [php/php.ini](php/php.ini)
+- [supervisord/supervisord.conf](supervisord/supervisord.conf)
+- [docker/entrypoint.sh](docker/entrypoint.sh)
 
 ---
 
-## 📊 Monitoring & Health Checks
+## Monitoring & Health
 
-### Health Endpoints (localhost only)
+- FPM ping: `http://localhost:8080/fpm-ping`
+- FPM status: `http://localhost:8080/fpm-status`
+- Docker health status: `docker inspect --format='{{.State.Health.Status}}' wordpress` (container name may differ)
 
-- **FPM Ping:** `http://localhost:8080/fpm-ping` - Returns `pong` if PHP-FPM is healthy
-- **FPM Status:** `http://localhost:8080/fpm-status` - Detailed PHP-FPM pool statistics
-
-### Docker Health Check
-
-```bash
-# Check container health
-docker inspect --format='{{.State.Health.Status}}' php-nginx
-
-# View health check logs
-docker inspect --format='{{json .State.Health}}' php-nginx | jq
-```
-
-### Logs
+Log examples:
 
 ```bash
-# View all logs
 docker compose logs -f
-
-# View specific service
-docker logs php-nginx
-
-# Nginx access logs
-docker exec php-nginx tail -f /var/log/nginx/access.log
-
-# PHP-FPM logs
-docker exec php-nginx tail -f /var/log/php-fpm/error.log
+docker logs wordpress
+docker exec wordpress tail -f /var/log/nginx/access.log
+docker exec wordpress tail -f /var/log/php-fpm/error.log
 ```
 
 ---
 
+## Troubleshooting
 
-## 🔧 Common Troubleshooting
-
-### `apk add php81-* not found`
-
-**Solution:** Use the Alpine release that ships that PHP minor version.
-- PHP 8.1 → Alpine 3.18
-- PHP 8.2 → Alpine 3.20
-- PHP 8.3 → Alpine 3.20
-- PHP 8.4 → Alpine edge
-
-```bash
-docker build --build-arg PHP_VERSION=81 --build-arg ALPINE_VERSION=3.18 .
-```
-
-### `permission denied` on sockets/logs
-
-**Solution:** Ensure mounts are writable by the `app` user (UID 1000).
-
-```bash
-# On host
-chown -R 1000:1000 ./src
-
-# Or in docker-compose.yml
-services:
-  app:
-    user: "1000:1000"
-```
-
-### Slow builds on CI
-
-**Solution:** Enable buildx cache in GitHub Actions.
-
-```yaml
-- name: Build and push
-  uses: docker/build-push-action@v5
-  with:
-    cache-from: type=gha
-    cache-to: type=gha,mode=max
-```
-
-### Healthcheck failing
-
-**Solution:** Verify PHP-FPM socket and nginx configuration.
-
-```bash
-# Check if socket exists
-docker exec php-nginx ls -la /run/php/php-fpm.sock
-
-# Test ping endpoint
-docker exec php-nginx curl -f http://localhost:8080/fpm-ping
-
-# Check nginx config
-docker exec php-nginx nginx -t
-```
-
-### Application shows white page
-
-**Solution:** Check PHP error logs and permissions.
-
-```bash
-# Enable error display temporarily
-docker exec php-nginx sed -i 's/display_errors = Off/display_errors = On/' /etc/php83/php.ini
-docker exec php-nginx supervisorctl restart php-fpm
-
-# Check logs
-docker exec php-nginx tail -f /var/log/php-fpm/error.log
-```
+- `apk add php81-* not found`: use matching Alpine/PHP pair via versioned Dockerfile or override `PHP_TAG`/`PHP_VERSION` consistently.
+- Healthcheck failing: confirm `/run/php/php-fpm.sock` exists and `nginx -t` passes.
+- Permission denied on mounts: ensure host paths are writable by UID/GID 1000 (`app`) or set `user: "1000:1000"` in compose.
+- White page: temporarily enable `display_errors` in PHP overrides and inspect PHP-FPM logs.
 
 ---
 
-## 📚 Documentation
+## License
 
-### Key Configuration Files
-
-- **[nginx.conf](nginx/nginx.conf)** - Nginx global settings
-- **[default.conf](nginx/conf.d/default.conf)** - Server block configuration
-- **[php.ini](php/php.ini)** - PHP runtime settings
-- **[fpm-pool.conf](php/fpm-pool.conf)** - PHP-FPM pool configuration
-- **[supervisord.conf](supervisord/supervisord.conf)** - Process supervision
-
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork the repository**
-   ```bash
-   gh repo fork nooblk-98/php-nginx-docker-template
-   ```
-
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-
-3. **Make your changes**
-   - Follow existing code style
-   - Update documentation if needed
-   - Test your changes thoroughly
-
-4. **Commit your changes**
-   ```bash
-   git commit -m "feat: add amazing feature"
-   ```
-
-5. **Push to your fork**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-
-6. **Open a Pull Request**
-   - Describe your changes clearly
-   - Reference any related issues
-
-### Development Guidelines
-
-- Test with multiple PHP versions
-- Ensure security best practices
-- Update README for new features
-- Add comments for complex configurations
-- Run shellcheck on scripts
-
----
-
-## 📝 License
-
-This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
-See [LICENSE](LICENSE) for full details.
-
----
-
-## 🙏 Acknowledgments
-
-- Built with [Alpine Linux](https://alpinelinux.org/)
-- Powered by [Nginx](https://nginx.org/) and [PHP-FPM](https://www.php.net/manual/en/install.fpm.php)
-- Process management by [Supervisor](http://supervisord.org/)
-- Init system by [Tini](https://github.com/krallin/tini)
+Distributed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
-
-**Made with ❤️ by NoobLK**
-
-[⬆ Back to top](#php-nginx-docker-template)
-
+  <p><a href="#overview">Back to top</a></p>
 </div>
