@@ -5,16 +5,18 @@
 
 **Battle-tested WordPress images layered on top of the secured php-nginx stack.**
 
-<div align="center">
-  <p>
-    <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub"></a>
-    <a href="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white"><img src="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white" alt="PHP Versions"></a>
-    <a href="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white"><img src="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white" alt="WordPress latest"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="License"></a>
-  </p>
+[![CI/CD](https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/nooblk-98/wordpress-docker-template/actions/workflows/build-and-push.yml)
+[![PHP Version](https://img.shields.io/badge/PHP-7.4%20|%208.1%20|%208.2%20|%208.3%20|%208.4-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![Alpine Linux](https://img.shields.io/badge/Alpine-3.15%20|%203.18%20|%203.20%20|%20edge-0D597F?logo=alpine-linux&logoColor=white)](https://alpinelinux.org/)
+[![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?logo=nginx&logoColor=white)](https://nginx.org/)
+[![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: AGPL](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
+[![Last Commit](https://img.shields.io/github/last-commit/nooblk-98/wordpress-docker-template)](https://github.com/nooblk-98/wordpress-docker-template/commits/main)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/nooblk-98/wordpress-docker-template/blob/main/CONTRIBUTING.md)
 
-  <p><a href="#overview">Overview</a> • <a href="#features">Features</a> • <a href="#quick-start">Quick Start</a> • <a href="#configuration">Configuration</a> • <a href="#troubleshooting">Troubleshooting</a></p>
-  </div></div>
+[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
+
+</div>
 
 ---
 
@@ -242,6 +244,6 @@ See [LICENSE](LICENSE) for full details.
 
 **Made with ❤️ by NoobLK**
 
-[⬆ Back to top](#php-nginx-docker-template)
+[⬆ Back to top](#wordpress-docker-template)
 
 </div>
