@@ -14,8 +14,6 @@
 [![Last Commit](https://img.shields.io/github/last-commit/nooblk-98/wordpress-docker-template)](https://github.com/nooblk-98/wordpress-docker-template/commits/main)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/nooblk-98/wordpress-docker-template/blob/main/CONTRIBUTING.md)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
-
 </div>
 
 ---
