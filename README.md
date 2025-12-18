@@ -1,24 +1,23 @@
 <div align="center">
-  <img src="./images/logo.svg" width="360" alt="php-nginx-docker logo" />
 
 # WordPress + Nginx + PHP-FPM
 
-**Battle-tested WordPress images layered on top of the secured php-nginx stack. You get WordPress core plus WP-CLI baked in, opinionated PHP and Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.**
+**Battle-tested WordPress images built on top of the secured php-nginx stack. WordPress core and WP-CLI are baked in, with opinionated PHP/Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.**
 
 <div align="center">
   <p>
-    <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub"></a>
-    <a href="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white"><img src="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white" alt="PHP Versions"></a>
-    <a href="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white"><img src="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white" alt="WordPress latest"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="License"></a>
+    <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/PHP-7.4%20|%208.1%20|%208.2%20|%208.3%20|%208.4-777BB4?logo=php&logoColor=white" alt="PHP versions" /></a>
+    <a href="#"><img src="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white" alt="WordPress latest" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="License" /></a>
   </p>
 
-  <p><a href="#overview">Overview</a> • <a href="#features">Features</a> • <a href="#quick-start">Quick Start</a> • <a href="#configuration">Configuration</a> • <a href="#troubleshooting">Troubleshooting</a></p>
+  <p><a href="#overview">Overview</a> | <a href="#features">Features</a> | <a href="#quick-start">Quick Start</a> | <a href="#configuration">Configuration</a> | <a href="#troubleshooting">Troubleshooting</a></p>
 </div>
 
 ---
 
-### What is included
+## Overview
 
 - WordPress core downloaded at build time (override with `WORDPRESS_VERSION`).
 - WP-CLI installed globally and used to generate `wp-config.php` with sane defaults.
