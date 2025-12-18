@@ -1,7 +1,11 @@
 <div align="center">
-  <h1>WordPress + Nginx + PHP-FPM</h1>
-  <p><strong>Production-ready WordPress images built on the hardened <a href="https://github.com/nooblk-98/php-nginx-docker-template">lahiru98s/php-nginx</a> base</strong></p>
+  <img src="./images/logo.svg" width="360" alt="php-nginx-docker logo" />
 
+# WordPress + Nginx + PHP-FPM
+
+**Battle-tested WordPress images layered on top of the secured php-nginx stack. You get WordPress core plus WP-CLI baked in, opinionated PHP and Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.**
+
+<div align="center">
   <p>
     <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub"></a>
     <a href="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white"><img src="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white" alt="PHP Versions"></a>
@@ -13,10 +17,6 @@
 </div>
 
 ---
-
-## Overview
-
-Battle-tested WordPress images layered on top of the secured php-nginx stack. You get WordPress core plus WP-CLI baked in, opinionated PHP and Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.
 
 ### What is included
 
