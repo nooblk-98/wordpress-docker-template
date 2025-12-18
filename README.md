@@ -3,7 +3,7 @@
 
 # WordPress + Nginx + PHP-FPM
 
-**Battle-tested WordPress images layered on top of the secured php-nginx stack. You get WordPress core plus WP-CLI baked in, opinionated PHP and Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.**
+**Battle-tested WordPress images layered on top of the secured php-nginx stack.**
 
 <div align="center">
   <p>
