@@ -1,80 +1,204 @@
-# WordPress on lahiru98s/php-nginx
+<div align="center">
+  <h1>WordPress + Nginx + PHP-FPM</h1>
+  <p><strong>Production-ready WordPress images built on the hardened <a href="https://github.com/nooblk-98/php-nginx-docker-template">lahiru98s/php-nginx</a> base</strong></p>
 
-Hardened WordPress images built on top of [`lahiru98s/php-nginx`](https://github.com/nooblk-98/php-nginx-docker-template), published for every supported PHP version (7.4, 8.1, 8.2, 8.3, 8.4). The repository mirrors the folder structure of the base PHP image (`wp74`, `wp81`, `wp82`, `wp83`, `wp84`) so you can build or publish each tag independently.
+  <p>
+    <a href="https://hub.docker.com/r/lahiru98s/wordpress-nginx"><img src="https://img.shields.io/badge/Docker-Hub-2496ED?logo=docker&logoColor=white" alt="Docker Hub"></a>
+    <a href="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white"><img src="https://img.shields.io/badge/PHP-7.4%20%7C%208.1%20%7C%208.2%20%7C%208.3%20%7C%208.4-777BB4?logo=php&logoColor=white" alt="PHP Versions"></a>
+    <a href="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white"><img src="https://img.shields.io/badge/WordPress-latest-21759B?logo=wordpress&logoColor=white" alt="WordPress latest"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue" alt="License"></a>
+  </p>
 
-## What you get
+  <p><a href="#overview">Overview</a> • <a href="#features">Features</a> • <a href="#quick-start">Quick Start</a> • <a href="#configuration">Configuration</a> • <a href="#troubleshooting">Troubleshooting</a></p>
+</div>
 
-- Pre-baked WordPress core (configurable via `WORDPRESS_VERSION`, defaults to `latest`).
-- WP-CLI included and used to generate `wp-config.php` with sensible defaults for WordPress (uploads, cache, cron, debug, salts).
-- Re-uses the base image’s Nginx, PHP-FPM, Supervisor, and non-root `app` user hardening.
-- Lightweight entrypoint that optionally auto-installs WordPress when DB is reachable.
+---
 
-## Building images
+## Overview
 
-### Generic (all versions from one Dockerfile)
+Battle-tested WordPress images layered on top of the secured php-nginx stack. You get WordPress core plus WP-CLI baked in, opinionated PHP and Nginx defaults, non-root runtime, Supervisor-managed services, and ready-to-ship health checks.
+
+### What is included
+
+- WordPress core downloaded at build time (override with `WORDPRESS_VERSION`).
+- WP-CLI installed globally and used to generate `wp-config.php` with sane defaults.
+- Nginx + PHP-FPM tuned for WordPress, served by a non-root `app` user.
+- Supervisor as process manager with Tini for proper signal handling.
+- Health endpoints (`/fpm-ping`, `/fpm-status`) and Docker healthcheck.
+
+---
+
+## Features
+
+### Security and hardening
+- Non-root `app` user, locked-down Nginx headers, and minimal Alpine base inherited from the php-nginx image.
+- Salts shuffled on first boot; config generation avoids exposing secrets in images.
+- Socket-based PHP-FPM and supervisor-managed processes for predictable restarts.
+
+### WordPress experience
+- `wp-config.php` auto-created if missing; respects DB/env overrides and common toggles (debug, cache, cron, SSL admin, environment type).
+- Optional automatic `wp core install` when the database is reachable (`WORDPRESS_AUTO_INSTALL=true`).
+- Sensible PHP overrides for file uploads, memory/time limits, and input vars via [php/php.ini](php/php.ini).
+
+### Operations and observability
+- Health endpoints wired to the Docker healthcheck in [Dockerfile](Dockerfile).
+- Structured logging through Nginx and PHP-FPM; Supervisor keeps services up.
+- One-command compose stack with MariaDB and persistent volumes.
+
+### Flexibility
+- Build or pull per-PHP version tags (7.4, 8.1, 8.2, 8.3, 8.4) mirroring the base image layout.
+- Override WordPress version, PHP tag, and PHP package version through build args.
+- Drop-in config overrides for Nginx, PHP-FPM, and Supervisor.
+
+---
+
+## Quick Start
+
+### Option 1: Docker Compose (recommended)
 
 ```bash
-# PHP 8.4 (default args: PHP_TAG=8.4, PHP_VERSION=84)
-docker build -t lahiru98s/wordpress-nginx:8.4 .
+git clone https://github.com/nooblk-98/wordpress-docker-template.git
+cd wordpress-docker-template
 
-# Override PHP version/tag (dotless PHP_VERSION matches Alpine package names)
-docker build -t lahiru98s/wordpress-nginx:8.3 \
-  --build-arg PHP_TAG=8.3 \
-  --build-arg PHP_VERSION=83 .
-```
-
-### Version-pinned Dockerfiles (mirrors base repo layout)
-
-```bash
-docker build -t lahiru98s/wordpress-nginx:7.4 -f wp74/Dockerfile .
-docker build -t lahiru98s/wordpress-nginx:8.1 -f wp81/Dockerfile .
-docker build -t lahiru98s/wordpress-nginx:8.2 -f wp82/Dockerfile .
-docker build -t lahiru98s/wordpress-nginx:8.3 -f wp83/Dockerfile .
-docker build -t lahiru98s/wordpress-nginx:8.4 -f wp84/Dockerfile .
-```
-
-`WORDPRESS_VERSION` is also overridable: `--build-arg WORDPRESS_VERSION=6.7.1`.
-
-## Runtime configuration
-
-Entrypoint env vars (all optional):
-
-- `WORDPRESS_DB_HOST` (default `db:3306`)
-- `WORDPRESS_DB_NAME` (default `wordpress`)
-- `WORDPRESS_DB_USER` / `WORDPRESS_DB_PASSWORD` (default `wordpress`/`wordpress`)
-- `WORDPRESS_TABLE_PREFIX` (default `wp_`)
-- `WORDPRESS_DEBUG`, `WORDPRESS_CACHE`, `WORDPRESS_FORCE_SSL_ADMIN`, `WORDPRESS_DISABLE_CRON`, `WORDPRESS_ENVIRONMENT_TYPE` (defaults: `false`, `false`, `false`, `false`, `production`)
-- `WORDPRESS_AUTO_INSTALL` (`true` to run `wp core install` automatically)
-- `WORDPRESS_SITE_URL`, `WORDPRESS_SITE_TITLE`, `WORDPRESS_ADMIN_USER`, `WORDPRESS_ADMIN_PASSWORD`, `WORDPRESS_ADMIN_EMAIL` (used when `WORDPRESS_AUTO_INSTALL=true`)
-- `WORDPRESS_PATH` (default `/var/www/html`)
-
-The entrypoint always creates `wp-config.php` if missing and shuffles salts. Automatic install is skipped until the DB responds to `wp db check`.
-
-## Local compose example
-
-```bash
 docker compose up -d
 open http://localhost:8080
 ```
 
-`docker-compose.yml` builds the PHP 8.4 image by default, runs MariaDB, persists `/var/www/html/wp-content`, and enables `WORDPRESS_AUTO_INSTALL`.
+`docker-compose.yml` builds the PHP 8.4 image by default, starts MariaDB 11, and enables automatic WordPress installation with starter admin credentials. Uncomment the provided volume lines to persist uploads and database data.
 
-## Folder map
-
-- `Dockerfile` — default build (PHP 8.4) using `lahiru98s/php-nginx` base.
-- `wp74`, `wp81`, `wp82`, `wp83`, `wp84` — version-pinned Dockerfiles.
-- `nginx/` — hardened defaults plus WordPress-friendly location rules.
-- `php/php.ini` — WordPress-friendly PHP overrides (uploads, URL fopen, input vars).
-- `supervisord/` — starts Nginx + PHP-FPM under the non-root `app` user.
-- `docker/entrypoint.sh` — generates config, optional auto-install, then starts Supervisor via `tini`.
-
-## Publishing
-
-Tag and push per version:
+### Option 2: Run with an external database
 
 ```bash
-docker build -t lahiru98s/wordpress-nginx:8.4 -f wp84/Dockerfile .
-docker push lahiru98s/wordpress-nginx:8.4
+docker run -d \
+  --name wordpress-nginx \
+  -p 8080:8080 \
+  -e WORDPRESS_DB_HOST=your-db:3306 \
+  -e WORDPRESS_DB_USER=wordpress \
+  -e WORDPRESS_DB_PASSWORD=wordpress \
+  lahiru98s/wordpress-nginx:8.4
 ```
 
-Repeat for `7.4`, `8.1`, `8.2`, `8.3` (or automate in CI).
+### Option 3: Pull image directly
+
+```bash
+docker pull lahiru98s/wordpress-nginx:8.4
+```
+
+---
+
+## Available tags
+
+| PHP version | Image tag | Dockerfile | Status |
+| ----------- | --------- | ---------- | ------ |
+| 8.4 | `8.4`, `latest` | [wp84/Dockerfile](wp84/Dockerfile) | Stable |
+| 8.3 | `8.3` | [wp83/Dockerfile](wp83/Dockerfile) | Stable |
+| 8.2 | `8.2` | [wp82/Dockerfile](wp82/Dockerfile) | Stable |
+| 8.1 | `8.1` | [wp81/Dockerfile](wp81/Dockerfile) | Stable |
+| 7.4 | `7.4` | [wp74/Dockerfile](wp74/Dockerfile) | Legacy |
+
+Default build args: `PHP_TAG=8.4`, `PHP_VERSION=84`, `WORDPRESS_VERSION=latest`.
+
+---
+
+## Building from source
+
+### Generic build (default PHP 8.4)
+
+```bash
+docker build -t lahiru98s/wordpress-nginx:8.4 .
+```
+
+### Pin PHP/WordPress versions
+
+```bash
+docker build \
+  -t lahiru98s/wordpress-nginx:8.3 \
+  --build-arg PHP_TAG=8.3 \
+  --build-arg PHP_VERSION=83 \
+  --build-arg WORDPRESS_VERSION=6.7.1 \
+  .
+```
+
+### Build from a versioned Dockerfile
+
+```bash
+docker build -t lahiru98s/wordpress-nginx:8.1 -f wp81/Dockerfile .
+```
+
+---
+
+## Configuration
+
+Entrypoint environment variables (all optional):
+
+- `WORDPRESS_DB_HOST` (default `db:3306`)
+- `WORDPRESS_DB_NAME` (default `wordpress`)
+- `WORDPRESS_DB_USER` and `WORDPRESS_DB_PASSWORD` (default `wordpress`/`wordpress`)
+- `WORDPRESS_TABLE_PREFIX` (default `wp_`)
+- `WORDPRESS_DEBUG`, `WORDPRESS_CACHE`, `WORDPRESS_FORCE_SSL_ADMIN`, `WORDPRESS_DISABLE_CRON`, `WORDPRESS_ENVIRONMENT_TYPE` (defaults: `false`, `false`, `false`, `false`, `production`)
+- `WORDPRESS_AUTO_INSTALL` (`true` triggers `wp core install` once DB is reachable)
+- `WORDPRESS_SITE_URL`, `WORDPRESS_SITE_TITLE`, `WORDPRESS_ADMIN_USER`, `WORDPRESS_ADMIN_PASSWORD`, `WORDPRESS_ADMIN_EMAIL` (used only when auto-install is enabled)
+- `WORDPRESS_PATH` (default `/var/www/html`)
+
+Volume examples:
+
+```yaml
+services:
+  wordpress:
+    volumes:
+      - ./wp-data:/var/www/html/wp-content
+  db:
+    volumes:
+      - ./db-data:/var/lib/mysql
+```
+
+Key configuration files:
+
+- [nginx/nginx.conf](nginx/nginx.conf) and [nginx/conf.d/default.conf](nginx/conf.d/default.conf)
+- [php/php.ini](php/php.ini)
+- [supervisord/supervisord.conf](supervisord/supervisord.conf)
+- [docker/entrypoint.sh](docker/entrypoint.sh)
+
+---
+
+## Monitoring and health
+
+- FPM ping: `http://localhost:8080/fpm-ping`
+- FPM status: `http://localhost:8080/fpm-status`
+- Docker health status: `docker inspect --format='{{.State.Health.Status}}' wordpress` (container name may differ)
+
+Log examples:
+
+```bash
+docker compose logs -f
+docker logs wordpress
+docker exec wordpress tail -f /var/log/nginx/access.log
+docker exec wordpress tail -f /var/log/php-fpm/error.log
+```
+
+---
+
+## Troubleshooting
+
+- `apk add php81-* not found`: build with the matching Alpine release by picking the versioned Dockerfile or overriding `PHP_TAG`/`PHP_VERSION` consistently.
+- Healthcheck failing: verify the FPM socket exists (`/run/php/php-fpm.sock`) and that Nginx config validates (`nginx -t`).
+- Permission denied on mounts: ensure mounted paths are writable by UID/GID 1000 (`app` user) or set `user: "1000:1000"` in compose.
+- White page: enable temporary error display (`display_errors = On` in PHP overrides) and check PHP-FPM logs.
+
+---
+
+## Contributing
+
+1) Fork and create a feature branch. 2) Make changes with tests or manual checks across supported PHP versions. 3) Update documentation when behavior changes. 4) Open a PR with a clear summary.
+
+---
+
+## License
+
+Distributed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+
+---
+
+<div align="center">
+  <p><a href="#overview">Back to top</a></p>
+</div>
