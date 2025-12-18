@@ -2,10 +2,6 @@ services:
   wordpress:
     build:
       context: .
-      args:
-        PHP_TAG: 8.4
-        PHP_VERSION: 84
-    image: wordpress-nginx:8.4
     ports:
       - "8080:8080"
     environment:

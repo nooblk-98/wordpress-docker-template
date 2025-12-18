@@ -59,12 +59,7 @@
 ```bash
 services:
   wordpress:
-    build:
-      context: .
-      args:
-        PHP_TAG: 8.4
-        PHP_VERSION: 84
-    image: wordpress-nginx:8.4
+    image: lahiru98s/wordpress:latest
     ports:
       - "8080:8080"
     environment:
@@ -235,9 +230,11 @@ docker exec wordpress tail -f /var/log/php-fpm/error.log
 
 ---
 
-## License
+## 📝 License
 
-Distributed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+See [LICENSE](LICENSE) for full details.
+
 
 ---
 
