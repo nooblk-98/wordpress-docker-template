@@ -42,7 +42,6 @@ RUN set -eux; \
 COPY php/php.ini /etc/php${PHP_VERSION}/conf.d/99-wordpress.ini
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/conf.d /etc/nginx/conf.d/
-COPY supervisord/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
