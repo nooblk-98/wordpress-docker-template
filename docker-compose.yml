@@ -15,8 +15,8 @@ services:
       WORDPRESS_ADMIN_USER: admin
       WORDPRESS_ADMIN_PASSWORD: admin
       WORDPRESS_ADMIN_EMAIL: admin@example.com
-    # volumes:
-    #   - wp_data:/var/www/html/wp-content
+    volumes:
+      - ./html:/var/www/html
     depends_on:
       - db
 
@@ -28,9 +28,5 @@ services:
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress
       MYSQL_ROOT_PASSWORD: rootpassword
-    # volumes:
-    #   - db_data:/var/lib/mysql
-
-volumes:
-  db_data:
-  wp_data:
+    volumes:
+      - ./database:/var/lib/mysql
