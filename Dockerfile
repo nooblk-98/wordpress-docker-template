@@ -48,7 +48,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 USER ${APP_USER}
 
-EXPOSE 8080
+EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
