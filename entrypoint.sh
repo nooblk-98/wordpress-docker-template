@@ -67,7 +67,7 @@ maybe_install_wp() {
   "${WP_CLI_BIN}" core install \
     --path="${WP_PATH}" \
     --allow-root \
-    --url="${WORDPRESS_SITE_URL:-http://localhost:8080}" \
+    --url="${WORDPRESS_SITE_URL:-http://localhost:80}" \
     --title="${WORDPRESS_SITE_TITLE:-WordPress}" \
     --admin_user="${WORDPRESS_ADMIN_USER:-admin}" \
     --admin_password="${WORDPRESS_ADMIN_PASSWORD:-password}" \
