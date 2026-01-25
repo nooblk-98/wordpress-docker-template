@@ -14,6 +14,8 @@
 [![Last Commit](https://img.shields.io/github/last-commit/nooblk-98/wordpress-docker-template)](https://github.com/nooblk-98/wordpress-docker-template/commits/main)
 [![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/nooblk-98/wordpress-docker-template/blob/main/CONTRIBUTING.md)
 
+[Docker Hub Repository](https://hub.docker.com/repository/docker/lahiru98s/wordpress)
+
 </div>
 
 ---
