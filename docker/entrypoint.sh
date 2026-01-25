@@ -22,7 +22,7 @@ ensure_wp_core() {
 }
 
 ensure_wp_config() {
-  if [ -f "${WP_PATH}/wp-config.php" ]; then
+  if [ -f "${WP_PATH}/wp-config.php" ] && [ -s "${WP_PATH}/wp-config.php" ]; then
     return
   fi
 
@@ -31,6 +31,7 @@ ensure_wp_config() {
     --path="${WP_PATH}" \
     --allow-root \
     --skip-check \
+    --force \
     --dbname="${WORDPRESS_DB_NAME:-wordpress}" \
     --dbuser="${WORDPRESS_DB_USER:-wordpress}" \
     --dbpass="${WORDPRESS_DB_PASSWORD:-wordpress}" \
