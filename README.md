@@ -98,7 +98,7 @@ volumes:
 
 ```bash
 # permissions for files
-chown -R 101:101 /var/www/html
+chown -R www-data:www-data /var/www/html
 ```
 
 ```bash
