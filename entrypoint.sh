@@ -48,6 +48,19 @@ ensure_wp_config() {
   mkdir -p "${WP_PATH}/wp-content/uploads"
 }
 
+sync_db_config() {
+  if [ ! -f "${WP_PATH}/wp-config.php" ]; then
+    return
+  fi
+
+  "${WP_CLI_BIN}" config set DB_NAME "${WORDPRESS_DB_NAME:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_USER "${WORDPRESS_DB_USER:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_PASSWORD "${WORDPRESS_DB_PASSWORD:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_HOST "${WORDPRESS_DB_HOST:-db:3306}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_CHARSET "${WORDPRESS_DB_CHARSET:-utf8mb4}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_COLLATE "${WORDPRESS_DB_COLLATE:-}" --type=constant --path="${WP_PATH}" --allow-root
+}
+
 maybe_install_wp() {
   if [ "${WORDPRESS_AUTO_INSTALL:-false}" != "true" ]; then
     return
@@ -78,6 +91,7 @@ maybe_install_wp() {
 main() {
   ensure_wp_core
   ensure_wp_config
+  sync_db_config
   maybe_install_wp
 
   if [ "$#" -eq 0 ]; then
