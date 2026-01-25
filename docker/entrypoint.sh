@@ -48,8 +48,28 @@ ensure_wp_config() {
   mkdir -p "${WP_PATH}/wp-content/uploads"
 }
 
+ensure_wp_config_writable() {
+  if [ ! -f "${WP_PATH}/wp-config.php" ]; then
+    return
+  fi
+
+  if [ -w "${WP_PATH}/wp-config.php" ]; then
+    return
+  fi
+
+  # Volume mounts can create root-owned files; try to make it writable.
+  chmod u+w "${WP_PATH}/wp-config.php" 2>/dev/null || true
+}
+
 sync_db_config() {
   if [ ! -f "${WP_PATH}/wp-config.php" ]; then
+    return
+  fi
+
+  ensure_wp_config_writable
+
+  if [ ! -w "${WP_PATH}/wp-config.php" ]; then
+    echo "-> wp-config.php is not writable; skipping DB config sync"
     return
   fi
 
