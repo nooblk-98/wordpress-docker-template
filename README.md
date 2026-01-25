@@ -94,6 +94,12 @@ volumes:
   wp_data:
 ```
 
+# permissions for files
+
+```bash
+chown -R 101:101 /var/www/html
+```
+
 ```bash
 docker compose up -d
 ```
