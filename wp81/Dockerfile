@@ -18,7 +18,9 @@ ARG APP_GROUP
 ENV WORDPRESS_PATH=/var/www/html \
     WORDPRESS_VERSION=${WORDPRESS_VERSION} \
     WP_CLI_BIN=/usr/local/bin/wp \
-    PHP_VERSION=${PHP_VERSION}
+    PHP_VERSION=${PHP_VERSION} \
+    APP_USER=${APP_USER} \
+    APP_GROUP=${APP_GROUP}
 
 WORKDIR ${WORDPRESS_PATH}
 
@@ -40,13 +42,21 @@ RUN set -eux; \
   chown -R "${APP_USER}:${APP_GROUP}" "${WORDPRESS_PATH}"
 
 COPY php/php.ini /etc/php${PHP_VERSION}/conf.d/99-wordpress.ini
+COPY php/php-fpm-www.conf /etc/php${PHP_VERSION}/php-fpm.d/www.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/conf.d /etc/nginx/conf.d/
 COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN set -eux; \
+  chmod +x /usr/local/bin/docker-entrypoint.sh; \
+  addgroup -S "${APP_GROUP}" || true; \
+  adduser -S -D -H -G "${APP_GROUP}" "${APP_USER}" || true; \
+  addgroup -S app || true; \
+  adduser -S -D -H -G app app || true; \
+  mkdir -p /run/php; \
+  chown -R "${APP_USER}:${APP_GROUP}" /run/php "${WORDPRESS_PATH}" || true
 
-USER ${APP_USER}
+USER root
 
 EXPOSE 80
 
