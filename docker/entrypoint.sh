@@ -4,6 +4,19 @@ set -e
 
 WP_PATH="${WORDPRESS_PATH:-/var/www/html}"
 WP_CLI_BIN="${WP_CLI_BIN:-/usr/local/bin/wp}"
+APP_USER="${APP_USER:-www-data}"
+APP_GROUP="${APP_GROUP:-www-data}"
+
+fix_permissions() {
+  # When running as root, ensure bind mounts and runtime dirs are writable.
+  if [ "$(id -u)" -ne 0 ]; then
+    return
+  fi
+
+  mkdir -p /run/php "${WP_PATH}/wp-content/uploads"
+  chown -R "${APP_USER}:${APP_GROUP}" /run/php "${WP_PATH}" 2>/dev/null || true
+  chmod -R g+w "${WP_PATH}/wp-content" 2>/dev/null || true
+}
 
 ensure_wp_core() {
   # Check if WordPress core files exist
@@ -110,6 +123,7 @@ maybe_install_wp() {
 }
 
 main() {
+  fix_permissions
   ensure_wp_core
   ensure_wp_config
   sync_db_config
