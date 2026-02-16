@@ -14,9 +14,24 @@ fix_permissions() {
     return
   fi
 
-  mkdir -p /run/php "${WP_PATH}/wp-content/uploads"
+  mkdir -p \
+    /run/php \
+    "${WP_PATH}/wp-content" \
+    "${WP_PATH}/wp-content/uploads" \
+    "${WP_PATH}/wp-content/plugins" \
+    "${WP_PATH}/wp-content/themes" \
+    "${WP_PATH}/wp-content/upgrade"
+
+  # Primary path: ensure app user owns writable runtime/content paths.
   chown -R "${APP_USER}:${APP_GROUP}" /run/php "${WP_PATH}" 2>/dev/null || true
-  chmod -R g+w "${WP_PATH}/wp-content" 2>/dev/null || true
+
+  # Fallback path: if ownership changes are blocked on the mount, keep WordPress writable.
+  chmod 775 /run/php 2>/dev/null || true
+  find "${WP_PATH}/wp-content" -type d -exec chmod 775 {} \; 2>/dev/null || true
+  find "${WP_PATH}/wp-content" -type f -exec chmod 664 {} \; 2>/dev/null || true
+
+  # Last-resort compatibility for restrictive host mounts.
+  chmod 777 "${WP_PATH}/wp-content" "${WP_PATH}/wp-content/upgrade" 2>/dev/null || true
 }
 
 ensure_wp_core() {
