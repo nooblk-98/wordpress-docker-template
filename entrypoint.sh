@@ -95,6 +95,25 @@ maybe_sync_legacy_wp_config() {
   "${WP_CLI_BIN}" config set DB_COLLATE "${WORDPRESS_DB_COLLATE:-}" --type=constant --path="${WP_PATH}" --allow-root
 }
 
+wait_for_db() {
+  timeout="${WORDPRESS_DB_WAIT_TIMEOUT:-60}"
+  interval="${WORDPRESS_DB_WAIT_INTERVAL:-2}"
+  elapsed=0
+
+  while ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; do
+    if [ "${elapsed}" -ge "${timeout}" ]; then
+      echo "-> Database not reachable after ${timeout}s, skipping automatic install"
+      return 1
+    fi
+
+    echo "-> Waiting for database (${elapsed}s/${timeout}s)"
+    sleep "${interval}"
+    elapsed=$((elapsed + interval))
+  done
+
+  return 0
+}
+
 maybe_install_wp() {
   if [ "${WORDPRESS_AUTO_INSTALL:-false}" != "true" ]; then
     return
@@ -105,8 +124,7 @@ maybe_install_wp() {
     return
   fi
 
-  if ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; then
-    echo "-> Database not reachable yet, skipping automatic install"
+  if ! wait_for_db; then
     return
   fi
 
