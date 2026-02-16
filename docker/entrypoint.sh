@@ -101,7 +101,48 @@ wait_for_db() {
   elapsed=0
 
   while :; do
-    db_check_output=$("${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root 2>&1) && return 0
+    db_check_output=$(php -r '
+$host = getenv("WORDPRESS_DB_HOST") ?: "db:3306";
+$db = getenv("WORDPRESS_DB_NAME") ?: "wordpress";
+$user = getenv("WORDPRESS_DB_USER") ?: "wordpress";
+$pass = getenv("WORDPRESS_DB_PASSWORD") ?: "wordpress";
+$charset = getenv("WORDPRESS_DB_CHARSET") ?: "utf8mb4";
+$socket = null;
+$port = 3306;
+$hostname = $host;
+
+if (strpos($host, "/") === 0) {
+    $socket = $host;
+    $hostname = null;
+} else {
+    $parts = explode(":", $host, 2);
+    $hostname = $parts[0];
+    if (isset($parts[1]) && $parts[1] !== "") {
+        $port = (int) $parts[1];
+    }
+}
+
+mysqli_report(MYSQLI_REPORT_OFF);
+$mysqli = @mysqli_init();
+if (!$mysqli) {
+    fwrite(STDERR, "mysqli_init failed");
+    exit(1);
+}
+@mysqli_options($mysqli, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+if (!@mysqli_real_connect($mysqli, $hostname, $user, $pass, $db, $port, $socket)) {
+    fwrite(STDERR, mysqli_connect_error());
+    exit(1);
+}
+if (!@$mysqli->set_charset($charset)) {
+    fwrite(STDERR, "set_charset failed: " . $mysqli->error);
+    exit(1);
+}
+if (!@$mysqli->query("SELECT 1")) {
+    fwrite(STDERR, "query failed: " . $mysqli->error);
+    exit(1);
+}
+$mysqli->close();
+' 2>&1) && return 0
 
     if echo "${db_check_output}" | grep -Eqi 'Access denied|Unknown database|SQLSTATE\[HY000\]'; then
       echo "-> Database check failed with a non-retryable error"
