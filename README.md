@@ -99,8 +99,15 @@ volumes:
 
 
 ```bash
-# permissions for files
-chown -R www-data:www-data /var/www/html
+# Fix ownership and permissions for WordPress directory
+sudo chown -R 33:33 /opt/www/html
+sudo chmod -R 755 /opt/www/html
+sudo chmod -R 755 /opt/www/html/wp-content
+sudo chmod -R 755 /opt/www/html/wp-content/uploads
+
+# Fix database directory
+sudo chown -R 999:999 /opt/www/database
+sudo chmod -R 700 /opt/www/database
 ```
 
 ```bash
