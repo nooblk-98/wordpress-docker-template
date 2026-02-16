@@ -23,7 +23,7 @@
 ### What is included
 
 - WordPress core downloaded at build time (override with `WORDPRESS_VERSION`).
-- WP-CLI installed globally and used to generate `wp-config.php` with sane defaults.
+- WP-CLI installed globally and used for core management and first-run automation.
 - Nginx + PHP-FPM tuned for WordPress, served by a non-root `app` user.
 - Supervisor as process manager with Tini for proper signal handling.
 - Health endpoints (`/fpm-ping`, `/fpm-status`) and Docker healthcheck.
@@ -38,7 +38,7 @@
 - Socket-based PHP-FPM and supervisor-managed processes for predictable restarts.
 
 ### WordPress experience
-- `wp-config.php` auto-created if missing; respects DB/env overrides and common toggles (debug, cache, cron, SSL admin, environment type).
+- `wp-config.php` auto-created from `php/wp-config-docker.php` if missing, so Compose environment variables are read directly at runtime.
 - Optional automatic `wp core install` when the database is reachable (`WORDPRESS_AUTO_INSTALL=true`).
 - Sensible PHP overrides for file uploads, memory/time limits, and input vars via [php/php.ini](php/php.ini).
 
@@ -185,6 +185,7 @@ Entrypoint environment variables (all optional):
 - `WORDPRESS_AUTO_INSTALL` (`true` triggers `wp core install` once DB is reachable)
 - `WORDPRESS_SITE_URL`, `WORDPRESS_SITE_TITLE`, `WORDPRESS_ADMIN_USER`, `WORDPRESS_ADMIN_PASSWORD`, `WORDPRESS_ADMIN_EMAIL` (used only when auto-install is enabled)
 - `WORDPRESS_PATH` (default `/var/www/html`)
+- `WORDPRESS_CONFIG_TEMPLATE_PATH` (default `/usr/src/wordpress/wp-config-docker.php`)
 
 Volume examples:
 

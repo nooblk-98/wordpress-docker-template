@@ -39,6 +39,13 @@ if (!function_exists('getenv_docker')) {
 	}
 }
 
+if (!function_exists('getenv_docker_bool')) {
+	function getenv_docker_bool($env, $default = false) {
+		$value = getenv_docker($env, $default ? '1' : '');
+		return in_array(strtolower(trim((string) $value)), array('1', 'true', 'on', 'yes'), true);
+	}
+}
+
 // ** Database settings - You can get this info from your web host ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', getenv_docker('WORDPRESS_DB_NAME', 'wordpress') );
@@ -113,7 +120,12 @@ $table_prefix = getenv_docker('WORDPRESS_TABLE_PREFIX', 'wp_');
  *
  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
  */
-define( 'WP_DEBUG', !!getenv_docker('WORDPRESS_DEBUG', '') );
+define( 'WP_DEBUG', getenv_docker_bool('WORDPRESS_DEBUG', false) );
+define( 'WP_CACHE', getenv_docker_bool('WORDPRESS_CACHE', false) );
+define( 'WP_ENVIRONMENT_TYPE', getenv_docker('WORDPRESS_ENVIRONMENT_TYPE', 'production') );
+define( 'FORCE_SSL_ADMIN', getenv_docker_bool('WORDPRESS_FORCE_SSL_ADMIN', false) );
+define( 'DISABLE_WP_CRON', getenv_docker_bool('WORDPRESS_DISABLE_CRON', false) );
+define( 'FS_METHOD', getenv_docker('WORDPRESS_FS_METHOD', 'direct') );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
