@@ -45,15 +45,15 @@ COPY php/php.ini /etc/php${PHP_VERSION}/conf.d/99-wordpress.ini
 COPY php/php-fpm-www.conf /etc/php${PHP_VERSION}/php-fpm.d/www.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/conf.d /etc/nginx/conf.d/
-COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN set -eux; \
-  chmod +x /usr/local/bin/docker-entrypoint.sh; \
-  addgroup -S "${APP_GROUP}" || true; \
-  adduser -S -D -H -G "${APP_GROUP}" "${APP_USER}" || true; \
-  addgroup -S app || true; \
-  adduser -S -D -H -G app app || true; \
+  sed -i "s/\r$//" /usr/local/bin/docker-entrypoint.sh; \
   mkdir -p /run/php; \
+  if command -v groupadd >/dev/null 2>&1 && ! getent group "${APP_GROUP}" >/dev/null 2>&1; then groupadd --system "${APP_GROUP}"; fi; \
+  if command -v useradd >/dev/null 2>&1 && ! id -u "${APP_USER}" >/dev/null 2>&1; then useradd --system --no-create-home --gid "${APP_GROUP}" "${APP_USER}"; fi; \
+  if command -v addgroup >/dev/null 2>&1 && ! getent group "${APP_GROUP}" >/dev/null 2>&1; then addgroup -S "${APP_GROUP}"; fi; \
+  if command -v adduser >/dev/null 2>&1 && ! id -u "${APP_USER}" >/dev/null 2>&1; then adduser -S -D -H -G "${APP_GROUP}" "${APP_USER}"; fi; \
   chown -R "${APP_USER}:${APP_GROUP}" /run/php "${WORDPRESS_PATH}" || true
 
 USER root
