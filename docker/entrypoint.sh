@@ -37,6 +37,7 @@ ensure_wp_core() {
 
 ensure_wp_config() {
   if [ -f "${WP_PATH}/wp-config.php" ] && [ -s "${WP_PATH}/wp-config.php" ]; then
+    maybe_sync_legacy_wp_config
     return
   fi
 
@@ -65,6 +66,54 @@ ensure_wp_config() {
     --dbprefix="${WORDPRESS_TABLE_PREFIX:-wp_}"
 }
 
+maybe_sync_legacy_wp_config() {
+  if [ ! -f "${WP_PATH}/wp-config.php" ]; then
+    return
+  fi
+
+  # Template-based configs resolve values from env at runtime.
+  # Only patch constants when an older static config is detected.
+  if grep -q "getenv_docker(" "${WP_PATH}/wp-config.php"; then
+    return
+  fi
+
+  if [ ! -w "${WP_PATH}/wp-config.php" ]; then
+    chmod u+w "${WP_PATH}/wp-config.php" 2>/dev/null || true
+  fi
+
+  if [ ! -w "${WP_PATH}/wp-config.php" ]; then
+    echo "-> Legacy wp-config.php is not writable; skipping DB constant sync"
+    return
+  fi
+
+  echo "-> Updating legacy static wp-config.php DB constants from environment"
+  "${WP_CLI_BIN}" config set DB_NAME "${WORDPRESS_DB_NAME:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_USER "${WORDPRESS_DB_USER:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_PASSWORD "${WORDPRESS_DB_PASSWORD:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_HOST "${WORDPRESS_DB_HOST:-db:3306}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_CHARSET "${WORDPRESS_DB_CHARSET:-utf8mb4}" --type=constant --path="${WP_PATH}" --allow-root
+  "${WP_CLI_BIN}" config set DB_COLLATE "${WORDPRESS_DB_COLLATE:-}" --type=constant --path="${WP_PATH}" --allow-root
+}
+
+wait_for_db() {
+  timeout="${WORDPRESS_DB_WAIT_TIMEOUT:-60}"
+  interval="${WORDPRESS_DB_WAIT_INTERVAL:-2}"
+  elapsed=0
+
+  while ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; do
+    if [ "${elapsed}" -ge "${timeout}" ]; then
+      echo "-> Database not reachable after ${timeout}s, skipping automatic install"
+      return 1
+    fi
+
+    echo "-> Waiting for database (${elapsed}s/${timeout}s)"
+    sleep "${interval}"
+    elapsed=$((elapsed + interval))
+  done
+
+  return 0
+}
+
 maybe_install_wp() {
   if [ "${WORDPRESS_AUTO_INSTALL:-false}" != "true" ]; then
     return
@@ -75,8 +124,7 @@ maybe_install_wp() {
     return
   fi
 
-  if ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; then
-    echo "-> Database not reachable yet, skipping automatic install"
+  if ! wait_for_db; then
     return
   fi
 

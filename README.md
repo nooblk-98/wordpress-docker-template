@@ -186,6 +186,7 @@ Entrypoint environment variables (all optional):
 - `WORDPRESS_SITE_URL`, `WORDPRESS_SITE_TITLE`, `WORDPRESS_ADMIN_USER`, `WORDPRESS_ADMIN_PASSWORD`, `WORDPRESS_ADMIN_EMAIL` (used only when auto-install is enabled)
 - `WORDPRESS_PATH` (default `/var/www/html`)
 - `WORDPRESS_CONFIG_TEMPLATE_PATH` (default `/usr/src/wordpress/wp-config-docker.php`)
+- `WORDPRESS_DB_WAIT_TIMEOUT` (default `60`) and `WORDPRESS_DB_WAIT_INTERVAL` (default `2`) for auto-install DB readiness wait loop
 
 Volume examples:
 
