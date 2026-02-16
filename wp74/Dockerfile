@@ -43,6 +43,7 @@ RUN set -eux; \
 
 COPY php/php.ini /etc/php${PHP_VERSION}/conf.d/99-wordpress.ini
 COPY php/php-fpm-www.conf /etc/php${PHP_VERSION}/php-fpm.d/www.conf
+COPY php/wp-config-docker.php /usr/src/wordpress/wp-config-docker.php
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 COPY nginx/conf.d /etc/nginx/conf.d/
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
