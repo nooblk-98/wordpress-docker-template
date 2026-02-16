@@ -100,9 +100,19 @@ wait_for_db() {
   interval="${WORDPRESS_DB_WAIT_INTERVAL:-2}"
   elapsed=0
 
-  while ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; do
+  while :; do
+    db_check_output=$("${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root 2>&1) && return 0
+
+    if echo "${db_check_output}" | grep -Eqi 'Access denied|Unknown database|SQLSTATE\[HY000\]'; then
+      echo "-> Database check failed with a non-retryable error"
+      echo "-> ${db_check_output}"
+      echo "-> Verify WORDPRESS_DB_HOST/WORDPRESS_DB_NAME/WORDPRESS_DB_USER/WORDPRESS_DB_PASSWORD and existing DB volume state"
+      return 1
+    fi
+
     if [ "${elapsed}" -ge "${timeout}" ]; then
       echo "-> Database not reachable after ${timeout}s, skipping automatic install"
+      echo "-> Last check output: ${db_check_output}"
       return 1
     fi
 
@@ -110,8 +120,6 @@ wait_for_db() {
     sleep "${interval}"
     elapsed=$((elapsed + interval))
   done
-
-  return 0
 }
 
 maybe_install_wp() {
