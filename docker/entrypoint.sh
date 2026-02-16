@@ -4,6 +4,7 @@ set -e
 
 WP_PATH="${WORDPRESS_PATH:-/var/www/html}"
 WP_CLI_BIN="${WP_CLI_BIN:-/usr/local/bin/wp}"
+WP_CONFIG_TEMPLATE_PATH="${WORDPRESS_CONFIG_TEMPLATE_PATH:-/usr/src/wordpress/wp-config-docker.php}"
 APP_USER="${APP_USER:-www-data}"
 APP_GROUP="${APP_GROUP:-www-data}"
 
@@ -30,16 +31,29 @@ ensure_wp_core() {
     --version="${WORDPRESS_VERSION:-latest}" \
     --allow-root \
     --force
-  
+
   echo "-> WordPress core files downloaded successfully"
 }
 
 ensure_wp_config() {
   if [ -f "${WP_PATH}/wp-config.php" ] && [ -s "${WP_PATH}/wp-config.php" ]; then
+    maybe_sync_legacy_wp_config
     return
   fi
 
-  echo "-> Generating wp-config.php"
+  mkdir -p "${WP_PATH}/wp-content/uploads"
+
+  if [ -f "${WP_CONFIG_TEMPLATE_PATH}" ] && [ -s "${WP_CONFIG_TEMPLATE_PATH}" ]; then
+    echo "-> Creating wp-config.php from wp-config-docker.php template"
+    cp "${WP_CONFIG_TEMPLATE_PATH}" "${WP_PATH}/wp-config.php"
+    chmod 640 "${WP_PATH}/wp-config.php" 2>/dev/null || true
+    if [ "$(id -u)" -eq 0 ]; then
+      chown "${APP_USER}:${APP_GROUP}" "${WP_PATH}/wp-config.php" 2>/dev/null || true
+    fi
+    return
+  fi
+
+  echo "-> wp-config-docker.php template not found. Falling back to wp-cli config generation"
   "${WP_CLI_BIN}" config create \
     --path="${WP_PATH}" \
     --allow-root \
@@ -50,49 +64,62 @@ ensure_wp_config() {
     --dbpass="${WORDPRESS_DB_PASSWORD:-wordpress}" \
     --dbhost="${WORDPRESS_DB_HOST:-db:3306}" \
     --dbprefix="${WORDPRESS_TABLE_PREFIX:-wp_}"
-
-  "${WP_CLI_BIN}" config set WP_DEBUG "${WORDPRESS_DEBUG:-false}" --raw --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config set WP_CACHE "${WORDPRESS_CACHE:-false}" --raw --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config set WP_ENVIRONMENT_TYPE "${WORDPRESS_ENVIRONMENT_TYPE:-production}" --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config set FORCE_SSL_ADMIN "${WORDPRESS_FORCE_SSL_ADMIN:-false}" --raw --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config set DISABLE_WP_CRON "${WORDPRESS_DISABLE_CRON:-false}" --raw --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config set FS_METHOD "direct" --path="${WP_PATH}" --allow-root
-  "${WP_CLI_BIN}" config shuffle-salts --path="${WP_PATH}" --allow-root
-
-  mkdir -p "${WP_PATH}/wp-content/uploads"
 }
 
-ensure_wp_config_writable() {
+maybe_sync_legacy_wp_config() {
   if [ ! -f "${WP_PATH}/wp-config.php" ]; then
     return
   fi
 
-  if [ -w "${WP_PATH}/wp-config.php" ]; then
+  # Template-based configs resolve values from env at runtime.
+  # Only patch constants when an older static config is detected.
+  if grep -q "getenv_docker(" "${WP_PATH}/wp-config.php"; then
     return
   fi
-
-  # Volume mounts can create root-owned files; try to make it writable.
-  chmod u+w "${WP_PATH}/wp-config.php" 2>/dev/null || true
-}
-
-sync_db_config() {
-  if [ ! -f "${WP_PATH}/wp-config.php" ]; then
-    return
-  fi
-
-  ensure_wp_config_writable
 
   if [ ! -w "${WP_PATH}/wp-config.php" ]; then
-    echo "-> wp-config.php is not writable; skipping DB config sync"
+    chmod u+w "${WP_PATH}/wp-config.php" 2>/dev/null || true
+  fi
+
+  if [ ! -w "${WP_PATH}/wp-config.php" ]; then
+    echo "-> Legacy wp-config.php is not writable; skipping DB constant sync"
     return
   fi
 
+  echo "-> Updating legacy static wp-config.php DB constants from environment"
   "${WP_CLI_BIN}" config set DB_NAME "${WORDPRESS_DB_NAME:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
   "${WP_CLI_BIN}" config set DB_USER "${WORDPRESS_DB_USER:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
   "${WP_CLI_BIN}" config set DB_PASSWORD "${WORDPRESS_DB_PASSWORD:-wordpress}" --type=constant --path="${WP_PATH}" --allow-root
   "${WP_CLI_BIN}" config set DB_HOST "${WORDPRESS_DB_HOST:-db:3306}" --type=constant --path="${WP_PATH}" --allow-root
   "${WP_CLI_BIN}" config set DB_CHARSET "${WORDPRESS_DB_CHARSET:-utf8mb4}" --type=constant --path="${WP_PATH}" --allow-root
   "${WP_CLI_BIN}" config set DB_COLLATE "${WORDPRESS_DB_COLLATE:-}" --type=constant --path="${WP_PATH}" --allow-root
+}
+
+wait_for_db() {
+  timeout="${WORDPRESS_DB_WAIT_TIMEOUT:-60}"
+  interval="${WORDPRESS_DB_WAIT_INTERVAL:-2}"
+  elapsed=0
+
+  while :; do
+    db_check_output=$("${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root 2>&1) && return 0
+
+    if echo "${db_check_output}" | grep -Eqi 'Access denied|Unknown database|SQLSTATE\[HY000\]'; then
+      echo "-> Database check failed with a non-retryable error"
+      echo "-> ${db_check_output}"
+      echo "-> Verify WORDPRESS_DB_HOST/WORDPRESS_DB_NAME/WORDPRESS_DB_USER/WORDPRESS_DB_PASSWORD and existing DB volume state"
+      return 1
+    fi
+
+    if [ "${elapsed}" -ge "${timeout}" ]; then
+      echo "-> Database not reachable after ${timeout}s, skipping automatic install"
+      echo "-> Last check output: ${db_check_output}"
+      return 1
+    fi
+
+    echo "-> Waiting for database (${elapsed}s/${timeout}s)"
+    sleep "${interval}"
+    elapsed=$((elapsed + interval))
+  done
 }
 
 maybe_install_wp() {
@@ -105,8 +132,7 @@ maybe_install_wp() {
     return
   fi
 
-  if ! "${WP_CLI_BIN}" db check --path="${WP_PATH}" --allow-root >/dev/null 2>&1; then
-    echo "-> Database not reachable yet, skipping automatic install"
+  if ! wait_for_db; then
     return
   fi
 
@@ -126,7 +152,6 @@ main() {
   fix_permissions
   ensure_wp_core
   ensure_wp_config
-  sync_db_config
   maybe_install_wp
 
   if [ "$#" -eq 0 ]; then
