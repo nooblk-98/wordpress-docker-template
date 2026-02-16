@@ -63,7 +63,7 @@ services:
   wordpress:
     image: lahiru98s/wordpress:latest
     ports:
-      - "8080:8080"
+      - "8080:80"
     environment:
       WORDPRESS_DB_HOST: db:3306
       WORDPRESS_DB_NAME: wordpress
@@ -117,7 +117,7 @@ open http://localhost:8080
 ```bash
 docker run -d \
   --name wordpress-nginx \
-  -p 8080:8080 \
+  -p 8080:80 \
   -e WORDPRESS_DB_HOST=your-db:3306 \
   -e WORDPRESS_DB_USER=wordpress \
   -e WORDPRESS_DB_PASSWORD=wordpress \
