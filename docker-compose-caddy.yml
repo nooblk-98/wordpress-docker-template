@@ -1,0 +1,47 @@
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - /opt/www/caddy/Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - wordpress
+
+  wordpress:
+    image: lahiru98s/wordpress:latest
+    restart: unless-stopped
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_SITE_TITLE: "WordPress on Nginx"
+      WORDPRESS_AUTO_INSTALL: "true"
+      WORDPRESS_ADMIN_USER: admin
+      WORDPRESS_ADMIN_PASSWORD: admin
+      WORDPRESS_ADMIN_EMAIL: admin@example.com
+      WORDPRESS_SITE_URL: http://localhost:8080
+    volumes:
+      - /opt/www/html:/var/www/html/wp-content
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - /opt/www/database:/var/lib/mysql
+
+volumes:
+  caddy_data:
+  caddy_config:
