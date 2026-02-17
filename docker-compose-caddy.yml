@@ -16,16 +16,16 @@ services:
     image: lahiru98s/wordpress:latest
     restart: unless-stopped
     environment:
-      WORDPRESS_DB_HOST: db:3306
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: wordpress
-      WORDPRESS_SITE_TITLE: "WordPress on Nginx"
-      WORDPRESS_AUTO_INSTALL: "true"
-      WORDPRESS_ADMIN_USER: admin
-      WORDPRESS_ADMIN_PASSWORD: admin
-      WORDPRESS_ADMIN_EMAIL: admin@example.com
-      WORDPRESS_SITE_URL: http://localhost:8080
+      WORDPRESS_DB_HOST: ${WORDPRESS_DB_HOST:-db:3306}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER:-wordpress}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      WORDPRESS_SITE_TITLE: ${WORDPRESS_SITE_TITLE:-WordPress on Caddy}
+      WORDPRESS_AUTO_INSTALL: ${WORDPRESS_AUTO_INSTALL:-true}
+      WORDPRESS_ADMIN_USER: ${WORDPRESS_ADMIN_USER:-admin}
+      WORDPRESS_ADMIN_PASSWORD: ${WORDPRESS_ADMIN_PASSWORD:-admin}
+      WORDPRESS_ADMIN_EMAIL: ${WORDPRESS_ADMIN_EMAIL:-admin@example.com}
+      WORDPRESS_SITE_URL: ${WORDPRESS_SITE_URL:-http://localhost}
     volumes:
       - /opt/www/html:/var/www/html/wp-content
     depends_on:
@@ -35,10 +35,10 @@ services:
     image: mariadb:11
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: wordpress
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME:-wordpress}
+      MYSQL_USER: ${WORDPRESS_DB_USER:-wordpress}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD:-wordpress}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
     volumes:
       - /opt/www/database:/var/lib/mysql
 
